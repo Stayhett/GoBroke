@@ -35,5 +35,27 @@ func main() {
 		}
 	}
 
-	fmt.Println(configurations)
+	// Working
+	for _, config := range configurations {
+		// Do pipelining
+		var extracts []broker.Extract
+
+		// TODO: Download Stuff
+		for _, l := range config.Input {
+			e := broker.Extract{InputType: config.InputType}
+			err = e.FetchData(l)
+			if err != nil {
+				log.Println(err)
+			}
+			extracts = append(extracts, e)
+		}
+
+		// TODO: Parse Stuff
+		// TODO: Upload Stuff
+		fmt.Println("Names:")
+		for _, e := range extracts {
+			fmt.Println(e.InputType)
+			fmt.Println(string(e.Data))
+		}
+	}
 }

@@ -2,29 +2,26 @@ package broker
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
-	"sync"
 )
 
-func fetchData(url string, queue chan<- []byte, wg *sync.WaitGroup) {
-	defer wg.Done()
+type Extract struct {
+	InputType string
+	Data      []byte
+}
 
-	// Download data
+func (e *Extract) FetchData(url string) error {
 	response, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("Error downloading data from %s: %v\n", url, err)
-		return
+		return err
 	}
-	defer response.Body.Close()
 
 	// Read the response body
-	data, err := ioutil.ReadAll(response.Body)
+	e.Data, err = io.ReadAll(response.Body)
 	if err != nil {
-		fmt.Printf("Error reading response body: %v\n", err)
-		return
+		fmt.Println("Error reading response body:", err)
+		return err
 	}
-
-	// Put the data into the queue
-	queue <- data
+	return nil
 }
