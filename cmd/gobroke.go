@@ -6,10 +6,25 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 )
+
+//func loadHandler
+
+func dataHandler(context *broker.Configuration, data []byte) {
+	switch context.InputType {
+	case "csv":
+		fmt.Println(string(data))
+	default:
+		fmt.Println("Not CSV")
+		fmt.Println(string(data))
+	}
+	//loadHandler(res)
+}
 
 func main() {
 	path := "configuration/"
+	var wg sync.WaitGroup
 
 	dir, err := os.Open(path)
 	if err != nil {
@@ -37,25 +52,17 @@ func main() {
 
 	// Working
 	for _, config := range configurations {
-		// Do pipelining
-		var extracts []broker.Extract
-
-		// TODO: Download Stuff
+		// Do pipelining for every location
 		for _, l := range config.Input {
-			e := broker.Extract{InputType: config.InputType}
-			err = e.FetchData(l)
-			if err != nil {
-				log.Println(err)
-			}
-			extracts = append(extracts, e)
-		}
-
-		// TODO: Parse Stuff
-		// TODO: Upload Stuff
-		fmt.Println("Names:")
-		for _, e := range extracts {
-			fmt.Println(e.InputType)
-			fmt.Println(string(e.Data))
+			wg.Add(1)
+			go func(config *broker.Configuration, lPtr *string) {
+				data, err := broker.FetchData(*lPtr)
+				if err != nil {
+					log.Println(err)
+				}
+				dataHandler(config, data)
+			}(&config, &l)
 		}
 	}
+	wg.Wait()
 }

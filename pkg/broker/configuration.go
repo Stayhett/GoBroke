@@ -11,6 +11,7 @@ type Configuration struct {
 	DataSchema map[string]string `yaml:"schema"`
 	Output     string            `yaml:"output"`
 	OutputHost string            `yaml:"output.host"`
+	OutputType string
 }
 
 func ConstructConfigurationFromFile(path string) (error, Configuration) {
@@ -24,5 +25,7 @@ func ConstructConfigurationFromFile(path string) (error, Configuration) {
 	if err != nil {
 		return err, Configuration{}
 	}
+	// TODO: Add Output Type
+
 	return nil, config
 }

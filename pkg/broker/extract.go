@@ -1,27 +1,19 @@
 package broker
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 )
 
-type Extract struct {
-	InputType string
-	Data      []byte
-}
-
-func (e *Extract) FetchData(url string) error {
+func FetchData(url string) ([]byte, error) {
 	response, err := http.Get(url)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 
-	// Read the response body
-	e.Data, err = io.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
-		return err
+		return []byte{}, err
 	}
-	return nil
+	return body, nil
 }
