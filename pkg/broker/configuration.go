@@ -5,16 +5,36 @@ import (
 	"os"
 )
 
-type Configuration struct {
-	InputType  string            `yaml:"type"`
-	Input      []string          `yaml:"locations"`
-	DataSchema map[string]string `yaml:"schema"`
-	Output     string            `yaml:"output"`
-	OutputHost string            `yaml:"output.host"`
-	OutputType string
+type Input struct {
+	Type      string   `yaml:"type"`
+	Locations []string `yaml:"locations"`
+	Auth      string
 }
 
-func ConstructConfigurationFromFile(path string) (error, Configuration) {
+type Output struct {
+	Connector string `yaml:"connector"`
+	Host      string `yaml:"host"`
+	Type      string
+}
+
+func (o *Output) determineOutputType() {
+	// TODO: To Implement
+}
+
+type DataSchema struct {
+	Mapping   map[string]string `yaml:"mapping"`
+	Delimiter string            `yaml:"delimiter"`
+	Separator string            `yaml:"separator"`
+	Header    []string          `yaml:"header"`
+}
+
+type Configuration struct {
+	Input      Input      `yaml:"input"`
+	Output     Output     `yaml:"output"`
+	DataSchema DataSchema `yaml:"schema"`
+}
+
+func ConfigurationConstructorFromFile(path string) (error, Configuration) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return err, Configuration{}
@@ -22,10 +42,12 @@ func ConstructConfigurationFromFile(path string) (error, Configuration) {
 
 	var config Configuration
 	err = yaml.Unmarshal(yamlFile, &config)
+
 	if err != nil {
 		return err, Configuration{}
 	}
-	// TODO: Add Output Type
 
+	config.Output.determineOutputType()
+	// TODO: Validate Data Scheme
 	return nil, config
 }

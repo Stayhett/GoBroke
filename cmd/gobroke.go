@@ -9,17 +9,15 @@ import (
 	"sync"
 )
 
-//func loadHandler
-
 func dataHandler(context *broker.Configuration, data []byte) {
-	switch context.InputType {
+	switch context.Input.Type {
 	case "csv":
 		fmt.Println(string(data))
 	default:
 		fmt.Println("Not CSV")
 		fmt.Println(string(data))
 	}
-	//loadHandler(res)
+	//broker.LoadHandler()
 }
 
 func main() {
@@ -30,7 +28,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer dir.Close()
+	defer func(dir *os.File) {
+		err := dir.Close()
+		if err != nil {
+
+		}
+	}(dir)
 
 	// Read the contents of the directory
 	fileInfos, err := dir.Readdir(-1)
@@ -41,7 +44,7 @@ func main() {
 	var configurations []broker.Configuration
 	for _, fileInfo := range fileInfos {
 		if strings.HasSuffix(fileInfo.Name(), ".yml") {
-			err, c := broker.ConstructConfigurationFromFile(path + fileInfo.Name())
+			err, c := broker.ConfigurationConstructorFromFile(path + fileInfo.Name())
 			if err != nil {
 				log.Println(err)
 				continue
@@ -53,7 +56,7 @@ func main() {
 	// Working
 	for _, config := range configurations {
 		// Do pipelining for every location
-		for _, l := range config.Input {
+		for _, l := range config.Input.Locations {
 			wg.Add(1)
 			go func(config *broker.Configuration, lPtr *string) {
 				data, err := broker.FetchData(*lPtr)
@@ -61,6 +64,7 @@ func main() {
 					log.Println(err)
 				}
 				dataHandler(config, data)
+				wg.Done()
 			}(&config, &l)
 		}
 	}
