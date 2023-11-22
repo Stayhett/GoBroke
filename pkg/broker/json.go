@@ -5,6 +5,13 @@ import (
 	"fmt"
 )
 
+type JSONProcessor struct {
+}
+
+func (J JSONProcessor) Do() {
+
+}
+
 func ReadJSON(jsonData []byte) {
 	// Define a variable with the map type to store the decoded JSON data
 	var data map[string]interface{}

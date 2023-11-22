@@ -17,37 +17,38 @@ type Output struct {
 	Type      string
 }
 
-func (o *Output) determineOutputType() {
-	// TODO: To Implement
+func (o *Output) determineOutputType() error {
+	o.Type = "json"
+	return nil
 }
 
-type DataSchema struct {
-	Mapping   map[string]string `yaml:"mapping"`
-	Delimiter string            `yaml:"delimiter"`
-	Separator string            `yaml:"separator"`
-	Header    []string          `yaml:"header"`
+type PipelineConfiguration struct {
+	CSVSchema
 }
 
 type Configuration struct {
-	Input      Input      `yaml:"input"`
-	Output     Output     `yaml:"output"`
-	DataSchema DataSchema `yaml:"schema"`
+	Input      Input                 `yaml:"input"`
+	Output     Output                `yaml:"output"`
+	DataSchema PipelineConfiguration `yaml:"schema"`
 }
 
-func ConfigurationConstructorFromFile(path string) (error, Configuration) {
+func ConfigurationConstructorFromFile(path string) (Configuration, error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
-		return err, Configuration{}
+		return Configuration{}, err
 	}
 
 	var config Configuration
 	err = yaml.Unmarshal(yamlFile, &config)
 
 	if err != nil {
-		return err, Configuration{}
+		return Configuration{}, err
 	}
 
-	config.Output.determineOutputType()
+	err = config.Output.determineOutputType()
+	if err != nil {
+		return Configuration{}, err
+	}
 	// TODO: Validate Data Scheme
-	return nil, config
+	return config, nil
 }

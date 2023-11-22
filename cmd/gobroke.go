@@ -10,14 +10,20 @@ import (
 )
 
 func dataHandler(context *broker.Configuration, data []byte) {
+	var pipeline broker.PipelineProcessor
+
 	switch context.Input.Type {
 	case "csv":
-		fmt.Println(string(data))
+		pipeline = &broker.CSVProcessor{
+			Output: context.Output,
+			Data:   data,
+		}
 	default:
 		fmt.Println("Not CSV")
 		fmt.Println(string(data))
+		return
 	}
-	//broker.LoadHandler()
+	pipeline.Do()
 }
 
 func main() {
@@ -44,7 +50,7 @@ func main() {
 	var configurations []broker.Configuration
 	for _, fileInfo := range fileInfos {
 		if strings.HasSuffix(fileInfo.Name(), ".yml") {
-			err, c := broker.ConfigurationConstructorFromFile(path + fileInfo.Name())
+			c, err := broker.ConfigurationConstructorFromFile(path + fileInfo.Name())
 			if err != nil {
 				log.Println(err)
 				continue
@@ -55,7 +61,7 @@ func main() {
 
 	// Working
 	for _, config := range configurations {
-		// Do pipelining for every location
+		// Do pipeline for every location
 		for _, l := range config.Input.Locations {
 			wg.Add(1)
 			go func(config *broker.Configuration, lPtr *string) {
