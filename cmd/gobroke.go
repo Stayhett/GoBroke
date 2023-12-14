@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func dataHandler(context *broker.Configuration, data []byte) {
+func pipelineHandler(context *broker.Configuration, data []byte) broker.PipelineProcessor {
 	var pipeline broker.PipelineProcessor
 
 	switch context.Input.Type {
@@ -24,11 +24,11 @@ func dataHandler(context *broker.Configuration, data []byte) {
 			Data:   data,
 		}
 	default:
-		fmt.Println("Not CSV")
+		fmt.Println("not a known type")
 		fmt.Println(string(data))
-		return
+		return nil
 	}
-	pipeline.Do()
+	return pipeline
 }
 
 func main() {
@@ -74,7 +74,14 @@ func main() {
 				if err != nil {
 					log.Println(err)
 				}
-				dataHandler(config, data)
+
+				pipeline := pipelineHandler(config, data)
+				pipeline.Do()
+
+				err = broker.LoadHandler(pipeline.GetData(), config.Output)
+				if err != nil {
+					log.Println(err)
+				}
 				wg.Done()
 			}(&config, &l)
 		}

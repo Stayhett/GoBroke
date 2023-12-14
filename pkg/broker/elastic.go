@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func UploadToElastic() {
+func UploadToElastic(index string) {
 	err := godotenv.Load("elastic.env")
 	if err != nil {
 		log.Fatal(err)
@@ -35,10 +35,10 @@ func UploadToElastic() {
 
 	bi, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Client:        es,
-		Index:         "liviana",
-		NumWorkers:    runtime.NumCPU(), // The number of worker goroutines
-		FlushBytes:    int(5e+6),        // The flush threshold in bytes
-		FlushInterval: 30 * time.Second, // The periodic flush interval
+		Index:         index,
+		NumWorkers:    runtime.NumCPU(),
+		FlushBytes:    int(5e+6),
+		FlushInterval: 30 * time.Second,
 	})
 	if err != nil {
 		log.Fatalf("Error creating the indexer: %s", err)
@@ -54,7 +54,7 @@ func UploadToElastic() {
 		err = bi.Add(
 			context.Background(),
 			esutil.BulkIndexerItem{
-				Index:  "liviana",
+				Index:  index,
 				Body:   bytes.NewReader(data),
 				Action: "index",
 				OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {

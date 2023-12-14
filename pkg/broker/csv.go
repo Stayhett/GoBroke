@@ -49,6 +49,14 @@ func (p *CSVProcessor) Do() {
 	}
 }
 
+func (p *CSVProcessor) GetData() []byte {
+	return p.Data
+}
+
+func (p *CSVProcessor) GetOutput() Output {
+	return p.Output
+}
+
 // parseCSV is a utility function
 func parseCSV(data []byte) (CSV, error) {
 	reader := csv.NewReader(bytes.NewReader(data))
