@@ -18,6 +18,11 @@ func dataHandler(context *broker.Configuration, data []byte) {
 			Output: context.Output,
 			Data:   data,
 		}
+	case "json":
+		pipeline = &broker.JSONProcessor{
+			Output: context.Output,
+			Data:   data,
+		}
 	default:
 		fmt.Println("Not CSV")
 		fmt.Println(string(data))

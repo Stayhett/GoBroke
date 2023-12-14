@@ -6,13 +6,16 @@ import (
 )
 
 type JSONProcessor struct {
+	Output
+	Data   []byte
+	Schema []string
 }
 
 func (J JSONProcessor) Do() {
-
+	readJSON(J.Data)
 }
 
-func ReadJSON(jsonData []byte) {
+func readJSON(jsonData []byte) {
 	// Define a variable with the map type to store the decoded JSON data
 	var data map[string]interface{}
 
@@ -25,6 +28,33 @@ func ReadJSON(jsonData []byte) {
 
 	// Print the decoded data
 	PrintNestedJSON(data, "")
+
+	for key, value := range flattenJSON(data, "") {
+		fmt.Printf("Key: %s, Value: %d\n", key, value)
+	}
+}
+
+// flattenJSON flattens JSON File but only with strings
+func flattenJSON(data map[string]interface{}, parentKey string) map[string]interface{} {
+	flat := make(map[string]interface{})
+
+	for key, value := range data {
+		newKey := fmt.Sprintf("%s%s", parentKey, key)
+
+		switch valueType := value.(type) {
+		case map[string]interface{}:
+			// Recursively flatten nested JSON
+			nestedFlat := flattenJSON(valueType, newKey+".")
+			for nestedKey, nestedValue := range nestedFlat {
+				flat[nestedKey] = nestedValue
+			}
+		default:
+			// For non-nested values, add them to the flat map
+			flat[newKey] = value
+		}
+	}
+
+	return flat
 }
 
 func PrintNestedJSON(data map[string]interface{}, prefix string) {
