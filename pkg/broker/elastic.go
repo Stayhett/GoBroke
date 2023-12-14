@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func UploadToElastic(index string) {
+func UploadToElastic(index string, data []map[string]interface{}) {
 	err := godotenv.Load("elastic.env")
 	if err != nil {
 		log.Fatal(err)
@@ -44,7 +44,6 @@ func UploadToElastic(index string) {
 		log.Fatalf("Error creating the indexer: %s", err)
 	}
 
-	var data []struct{}
 	for _, doc := range data {
 		data, err := json.Marshal(doc)
 		if err != nil {

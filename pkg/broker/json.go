@@ -11,8 +11,9 @@ type JSONProcessor struct {
 	Schema []string
 }
 
-func (J JSONProcessor) Do() {
+func (J JSONProcessor) Do() Table {
 	readJSON(J.Data)
+	return Table{}
 }
 
 func (J JSONProcessor) GetData() []byte {

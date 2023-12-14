@@ -76,9 +76,9 @@ func main() {
 				}
 
 				pipeline := pipelineHandler(config, data)
-				pipeline.Do()
+				table := pipeline.Do()
 
-				err = broker.LoadHandler(pipeline.GetData(), config.Output)
+				err = broker.LoadHandler(table, config.Output)
 				if err != nil {
 					log.Println(err)
 				}

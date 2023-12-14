@@ -5,26 +5,16 @@ import (
 	"fmt"
 )
 
-func LoadDataHandler(data [][]string, outputType string) ([]byte, error) {
-	var outputData []byte
-	var err error
-	switch outputType {
-	case "json":
-		outputData, err = parseCSVToMaps(data)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("%s is not a known output type", outputType)
-	}
-	return outputData, nil
-}
-
-func LoadHandler(data []byte, output Output) error {
+func LoadHandler(data Table, output Output) error {
 	switch output.Connector {
 	case "elasticsearch":
-		fmt.Printf("Would upload data to elasticsearch")
-		fmt.Println(string(data))
+		fmt.Printf("try upload data to elasticsearch")
+		outputData, err := TableToMaps(data)
+		if err != nil {
+			return err
+		}
+		UploadToElastic("go-broke", outputData)
+
 	default:
 		return fmt.Errorf("%s is not a known connector", output.Connector)
 	}

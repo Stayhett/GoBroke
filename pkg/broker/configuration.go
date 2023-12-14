@@ -17,11 +17,6 @@ type Output struct {
 	Type      string
 }
 
-func (o *Output) determineOutputType() error {
-	o.Type = "json"
-	return nil
-}
-
 type PipelineConfiguration struct {
 	CSVSchema
 }
@@ -45,7 +40,6 @@ func ConfigurationConstructorFromFile(path string) (Configuration, error) {
 		return Configuration{}, err
 	}
 
-	err = config.Output.determineOutputType()
 	if err != nil {
 		return Configuration{}, err
 	}

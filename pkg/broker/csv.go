@@ -19,8 +19,6 @@ type CSVSchema struct {
 	FirstLine bool              `yaml:"FirstLine"`
 }
 
-type CSV [][]string
-
 type CSVProcessor struct {
 	Output
 	CSVConfiguration
@@ -28,25 +26,14 @@ type CSVProcessor struct {
 	Header []string
 }
 
-func (p *CSVProcessor) Do() {
+func (p *CSVProcessor) Do() Table {
 	// TODO: Set Header if not done
 	data, err := parseCSV(p.Data)
 	if err != nil {
 		log.Print(err)
-		return
+		return nil
 	}
-
-	outputData, err := LoadDataHandler(data, p.Output.Type)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	err = LoadHandler(outputData, p.Output)
-	if err != nil {
-		log.Print(err)
-		return
-	}
+	return data
 }
 
 func (p *CSVProcessor) GetData() []byte {
@@ -58,7 +45,7 @@ func (p *CSVProcessor) GetOutput() Output {
 }
 
 // parseCSV is a utility function
-func parseCSV(data []byte) (CSV, error) {
+func parseCSV(data []byte) (Table, error) {
 	reader := csv.NewReader(bytes.NewReader(data))
 	return reader.ReadAll()
 }
