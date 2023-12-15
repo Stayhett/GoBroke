@@ -14,7 +14,10 @@ type Input struct {
 type Output struct {
 	Connector string `yaml:"connector"`
 	Host      string `yaml:"host"`
-	Type      string
+	Location  string `yaml:"index"`
+	Key       string `yaml:"key"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
 }
 
 type PipelineConfiguration struct {

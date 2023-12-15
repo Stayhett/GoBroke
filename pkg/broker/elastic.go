@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esutil"
-	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -15,20 +14,32 @@ import (
 	"time"
 )
 
-func UploadToElastic(index string, data []map[string]interface{}) {
-	err := godotenv.Load("elastic.env")
-	if err != nil {
-		log.Fatal(err)
+func UploadToElasticHandler(index string, data []map[string]interface{}, output Output) {
+	var esConfig elasticsearch.Config
+	if output.Key != "" {
+		esConfig = elasticsearch.Config{
+			Addresses: []string{os.Getenv(output.Host)},
+			APIKey:    os.Getenv(output.Key),
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+	} else {
+		esConfig = elasticsearch.Config{
+			Addresses: []string{os.Getenv(output.Host)},
+			Username:  os.Getenv(output.Username),
+			Password:  os.Getenv(output.Password),
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
 	}
+	UploadToElastic(index, data, &esConfig)
+}
+
+func UploadToElastic(index string, data []map[string]interface{}, esConfig *elasticsearch.Config) {
 	// Upload to elastic
-	es, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{os.Getenv("ELASTICSEARCH_URL")},
-		Username:  os.Getenv("ELASTICSEARCH_USERNAME"),
-		Password:  os.Getenv("ELASTICSEARCH_PASSWORD"),
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	})
+	es, err := elasticsearch.NewClient(*esConfig)
 	if err != nil {
 		log.Fatalf("Error creating the client: %s", err)
 	}

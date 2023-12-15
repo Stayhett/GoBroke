@@ -3,6 +3,7 @@ package main
 import (
 	"GoBroke/pkg/broker"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"strings"
@@ -32,6 +33,11 @@ func pipelineHandler(context *broker.Configuration, data []byte) broker.Pipeline
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	path := "configuration/"
 	var wg sync.WaitGroup
 
