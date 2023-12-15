@@ -59,7 +59,12 @@ func main() {
 	if err != nil {
 		log.Fatal("error opening directory:", err)
 	}
-	defer dir.Close()
+	defer func(dir *os.File) {
+		err := dir.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(dir)
 
 	// Read the contents of the directory
 	fileInfos, err := dir.Readdir(-1)
