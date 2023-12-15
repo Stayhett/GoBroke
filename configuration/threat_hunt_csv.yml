@@ -11,4 +11,4 @@ output:
   username: ELASTICSEARCH_USERNAME
   password: ELASTICSEARCH_PASSWORD
   update: new
-  location: go-broke
+  store: go-broke

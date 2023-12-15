@@ -12,7 +12,7 @@ func LoadHandler(data Table, output Output) error {
 		if err != nil {
 			return err
 		}
-		UploadToElasticHandler(outputData, output)
+		uploadToElasticHandler(outputData, output)
 	default:
 		return fmt.Errorf("%s is not a known connector", output.Connector)
 	}

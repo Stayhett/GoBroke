@@ -2,6 +2,7 @@ input:
   type: csv
   locations:
     - "https://raw.githubusercontent.com/datapackage-examples/sample-csv/master/sample.csv"
+  connector: http
 
 schema:
   mapping:
@@ -15,5 +16,5 @@ output:
   host: ELASTICSEARCH_URL
   username: ELASTICSEARCH_USERNAME
   password: ELASTICSEARCH_PASSWORD
-  location: go-broke
+  store: go-broke
   update: new

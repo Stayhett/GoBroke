@@ -18,7 +18,7 @@ const (
 	defaultFlushBytes = int(5e+6)
 )
 
-func UploadToElasticHandler(data []map[string]interface{}, output Output) {
+func uploadToElasticHandler(data []map[string]interface{}, output Output) {
 	esConfig := &elasticsearch.Config{
 		Addresses: []string{os.Getenv(output.Host)},
 		Transport: &http.Transport{
@@ -33,10 +33,10 @@ func UploadToElasticHandler(data []map[string]interface{}, output Output) {
 		esConfig.Password = output.Password
 	}
 
-	UploadToElastic(output.Location, data, esConfig)
+	uploadToElastic(output.Store, data, esConfig)
 }
 
-func UploadToElastic(index string, data []map[string]interface{}, esConfig *elasticsearch.Config) {
+func uploadToElastic(index string, data []map[string]interface{}, esConfig *elasticsearch.Config) {
 	// Upload to elastic
 	es, err := elasticsearch.NewClient(*esConfig)
 	if err != nil {
@@ -65,9 +65,9 @@ func UploadToElastic(index string, data []map[string]interface{}, esConfig *elas
 				Action: "index",
 				OnFailure: func(ctx context.Context, item esutil.BulkIndexerItem, res esutil.BulkIndexerResponseItem, err error) {
 					if err != nil {
-						log.Printf("error adding document to the indexer: %s", err)
+						log.Printf("ERROR: %s", err)
 					} else {
-						log.Printf("error: %s: %s", res.Error.Type, res.Error.Reason)
+						log.Printf("ERROR: %s: %s", res.Error.Type, res.Error.Reason)
 					}
 				},
 			},

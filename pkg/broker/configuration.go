@@ -17,7 +17,7 @@ type Input struct {
 type Output struct {
 	Connector string `yaml:"connector"`
 	Host      string `yaml:"host"`
-	Location  string `yaml:"index"`
+	Store     string `yaml:"store"`
 	Key       string `yaml:"key"`
 	Username  string `yaml:"username"`
 	Password  string `yaml:"password"`
