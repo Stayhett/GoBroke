@@ -44,6 +44,7 @@ func processLocation(wg *sync.WaitGroup, config broker.Configuration, location s
 	if err != nil {
 		log.Println("error loading data:", err)
 	}
+	wg.Done()
 }
 
 func main() {

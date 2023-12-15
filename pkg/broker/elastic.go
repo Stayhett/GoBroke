@@ -78,7 +78,7 @@ func UploadToElastic(index string, data []map[string]interface{}, esConfig *elas
 	}
 
 	if err := bi.Close(context.Background()); err != nil {
-		log.Printf("Unexpected error: %s", err)
+		log.Printf("unexpected error: %s", err)
 		return
 	}
 

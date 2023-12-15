@@ -15,4 +15,5 @@ output:
   host: ELASTICSEARCH_URL
   username: ELASTICSEARCH_USERNAME
   password: ELASTICSEARCH_PASSWORD
+  location: go-broke
   update: new
