@@ -18,7 +18,7 @@ const (
 	defaultFlushBytes = int(5e+6)
 )
 
-func UploadToElasticHandler(index string, data []map[string]interface{}, output Output) {
+func UploadToElasticHandler(data []map[string]interface{}, output Output) {
 	esConfig := &elasticsearch.Config{
 		Addresses: []string{os.Getenv(output.Host)},
 		Transport: &http.Transport{
@@ -27,13 +27,13 @@ func UploadToElasticHandler(index string, data []map[string]interface{}, output 
 	}
 
 	if output.Key != "" {
-		esConfig.APIKey = os.Getenv(output.Key)
+		esConfig.APIKey = output.Key
 	} else {
-		esConfig.Username = os.Getenv(output.Username)
-		esConfig.Password = os.Getenv(output.Password)
+		esConfig.Username = output.Username
+		esConfig.Password = output.Password
 	}
 
-	UploadToElastic(index, data, esConfig)
+	UploadToElastic(output.Location, data, esConfig)
 }
 
 func UploadToElastic(index string, data []map[string]interface{}, esConfig *elasticsearch.Config) {
