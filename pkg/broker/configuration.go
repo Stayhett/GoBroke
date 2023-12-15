@@ -41,14 +41,10 @@ func ConfigurationConstructorFromFile(path string) (Configuration, error) {
 
 	var config Configuration
 	err = yaml.Unmarshal(yamlFile, &config)
-
 	if err != nil {
 		return Configuration{}, err
 	}
 
-	if err != nil {
-		return Configuration{}, err
-	}
 	// TODO: Validate Data Scheme
 	return config, nil
 }
