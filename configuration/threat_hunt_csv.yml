@@ -1,0 +1,12 @@
+input:
+  type: csv
+  locations:
+    - "https://raw.githubusercontent.com/mthcht/ThreatHunting-Keywords/main/signature_keyword.csv"
+#  schema:
+#    - "rickroll": "rickroll"
+output:
+  connector: elasticsearch
+  host: ELASTICSEARCH_URL
+  username: ELASTICSEARCH_USERNAME
+  password: ELASTICSEARCH_PASSWORD
+  update: new

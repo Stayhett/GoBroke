@@ -1,0 +1,18 @@
+input:
+  type: csv
+  locations:
+    - "https://raw.githubusercontent.com/datapackage-examples/sample-csv/master/sample.csv"
+
+schema:
+  mapping:
+    rick roll: "rick roll"
+  delimiter: '"'
+  separator: ','
+  header: abc,def,asda,ai,d
+
+output:
+  connector: elasticsearch
+  host: ELASTICSEARCH_URL
+  username: ELASTICSEARCH_USERNAME
+  password: ELASTICSEARCH_PASSWORD
+  update: new
