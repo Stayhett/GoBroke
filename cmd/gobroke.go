@@ -11,51 +11,59 @@ import (
 )
 
 func pipelineHandler(context *broker.Configuration, data []byte) broker.PipelineProcessor {
-	var pipeline broker.PipelineProcessor
-
 	switch context.Input.Type {
 	case "csv":
-		pipeline = &broker.CSVProcessor{
+		return &broker.CSVProcessor{
 			Output: context.Output,
 			Data:   data,
 		}
 	case "json":
-		pipeline = &broker.JSONProcessor{
+		return &broker.JSONProcessor{
 			Output: context.Output,
 			Data:   data,
 		}
 	default:
-		fmt.Println("not a known type")
-		fmt.Println(string(data))
+		fmt.Println("Unknown input type:", context.Input.Type)
 		return nil
 	}
-	return pipeline
+}
+
+func processLocation(wg *sync.WaitGroup, config broker.Configuration, location string) {
+	defer wg.Done()
+
+	data, err := broker.FetchData(location)
+	if err != nil {
+		log.Println("error fetching data:", err)
+		return
+	}
+
+	pipeline := pipelineHandler(&config, data)
+	table := pipeline.Do()
+
+	err = broker.LoadHandler(table, config.Output)
+	if err != nil {
+		log.Println("error loading data:", err)
+	}
 }
 
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error loading .env file:", err)
 	}
 
 	path := "configuration/"
-	var wg sync.WaitGroup
 
 	dir, err := os.Open(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error opening directory:", err)
 	}
-	defer func(dir *os.File) {
-		err := dir.Close()
-		if err != nil {
-
-		}
-	}(dir)
+	defer dir.Close()
 
 	// Read the contents of the directory
 	fileInfos, err := dir.Readdir(-1)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error reading directory:", err)
 	}
 
 	var configurations []broker.Configuration
@@ -63,33 +71,18 @@ func main() {
 		if strings.HasSuffix(fileInfo.Name(), ".yml") {
 			c, err := broker.ConfigurationConstructorFromFile(path + fileInfo.Name())
 			if err != nil {
-				log.Println(err)
+				log.Println("error constructing configuration:", err)
 				continue
 			}
 			configurations = append(configurations, c)
 		}
 	}
 
-	// Working
+	var wg sync.WaitGroup
 	for _, config := range configurations {
-		// Do pipeline for every location
 		for _, l := range config.Input.Locations {
 			wg.Add(1)
-			go func(config *broker.Configuration, lPtr *string) {
-				data, err := broker.FetchData(*lPtr)
-				if err != nil {
-					log.Println(err)
-				}
-
-				pipeline := pipelineHandler(config, data)
-				table := pipeline.Do()
-
-				err = broker.LoadHandler(table, config.Output)
-				if err != nil {
-					log.Println(err)
-				}
-				wg.Done()
-			}(&config, &l)
+			go processLocation(&wg, config, l)
 		}
 	}
 	wg.Wait()

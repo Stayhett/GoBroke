@@ -15,26 +15,24 @@ import (
 )
 
 func UploadToElasticHandler(index string, data []map[string]interface{}, output Output) {
-	var esConfig elasticsearch.Config
 	if output.Key != "" {
-		esConfig = elasticsearch.Config{
+		UploadToElastic(index, data, &elasticsearch.Config{
 			Addresses: []string{os.Getenv(output.Host)},
 			APIKey:    os.Getenv(output.Key),
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
-		}
+		})
 	} else {
-		esConfig = elasticsearch.Config{
+		UploadToElastic(index, data, &elasticsearch.Config{
 			Addresses: []string{os.Getenv(output.Host)},
 			Username:  os.Getenv(output.Username),
 			Password:  os.Getenv(output.Password),
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
-		}
+		})
 	}
-	UploadToElastic(index, data, &esConfig)
 }
 
 func UploadToElastic(index string, data []map[string]interface{}, esConfig *elasticsearch.Config) {
