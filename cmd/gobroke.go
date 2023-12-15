@@ -31,7 +31,7 @@ func pipelineHandler(context *broker.Configuration, data []byte) broker.Pipeline
 func processLocation(wg *sync.WaitGroup, config broker.Configuration, location string) {
 	defer wg.Done()
 
-	data, err := broker.FetchData(location)
+	data, err := broker.InputHandler(&config.Input, location)
 	if err != nil {
 		log.Println("error fetching data:", err)
 		return
@@ -39,12 +39,16 @@ func processLocation(wg *sync.WaitGroup, config broker.Configuration, location s
 
 	pipeline := pipelineHandler(&config, data)
 	table := pipeline.Do()
+	if table == nil {
+		log.Println("no data found - no upload")
+		return
+	}
 
 	err = broker.LoadHandler(table, config.Output)
 	if err != nil {
 		log.Println("error loading data:", err)
 	}
-	wg.Done()
+	return
 }
 
 func main() {

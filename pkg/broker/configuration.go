@@ -8,7 +8,10 @@ import (
 type Input struct {
 	Type      string   `yaml:"type"`
 	Locations []string `yaml:"locations"`
-	Auth      string
+	Connector string   `yaml:"connector"`
+	Key       string   `yaml:"key"`
+	Username  string   `yaml:"username"`
+	Password  string   `yaml:"password"`
 }
 
 type Output struct {
