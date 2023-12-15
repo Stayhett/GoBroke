@@ -16,14 +16,6 @@ func (J JSONProcessor) Do() Table {
 	return Table{}
 }
 
-func (J JSONProcessor) GetData() []byte {
-	return J.Data
-}
-
-func (J JSONProcessor) GetOutput() Output {
-	return J.Output
-}
-
 func readJSON(jsonData []byte) {
 	// Define a variable with the map type to store the decoded JSON data
 	var data map[string]interface{}

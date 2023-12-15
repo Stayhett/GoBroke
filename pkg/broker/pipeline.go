@@ -2,8 +2,6 @@ package broker
 
 type PipelineProcessor interface {
 	Do() Table
-	GetData() []byte
-	GetOutput() Output
 }
 
 // TODO: Explicit type for json -> json Processor

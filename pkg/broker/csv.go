@@ -30,18 +30,10 @@ func (p *CSVProcessor) Do() Table {
 	// TODO: Set Header if not done
 	data, err := parseCSV(p.Data)
 	if err != nil {
-		log.Print(err)
+		log.Printf("error in parse csv: %s", err)
 		return nil
 	}
 	return data
-}
-
-func (p *CSVProcessor) GetData() []byte {
-	return p.Data
-}
-
-func (p *CSVProcessor) GetOutput() Output {
-	return p.Output
 }
 
 // parseCSV is a utility function
