@@ -56,13 +56,13 @@ func ConfigurationConstructorFromFile(path string) (Configuration, error) {
 	if config.Input.Prefetch != "" {
 		err = config.PreFetchHandler()
 		if err != nil {
-			return Configuration{}, err
+			return Configuration{}, errors.New(fmt.Sprintf("error during preFetching: %v", err))
 		}
 	}
 	return config, nil
 }
 
-func (C Configuration) PreFetchHandler() error {
+func (C *Configuration) PreFetchHandler() error {
 	var data []byte
 	var err error
 
@@ -82,18 +82,22 @@ func (C Configuration) PreFetchHandler() error {
 			reportAPI: "https://dl.shadowserver.org/",
 		}
 		data, err = conn.preFetch()
+		if err != nil {
+			return errors.New(fmt.Sprintf("error fetching: %v", err))
+		}
 	default:
 		return errors.New("no prefetching for this connector available")
 	}
 
 	// parse unknown json into map
 	var result []map[string]interface{}
+
 	err = json.Unmarshal(data, &result)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error unmarshalling JSON: %v", err))
 	}
 
-	// works at least for shadowserver
+	// works at least for shadow server
 	for _, report := range result {
 		if value, ok := report["id"]; ok {
 			C.Input.Locations = append(C.Input.Locations, value.(string))

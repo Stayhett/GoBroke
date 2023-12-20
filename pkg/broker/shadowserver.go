@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -39,6 +39,7 @@ type shadowServerConnector struct {
 	auth      func(message []byte, secret []byte) ([]byte, error)
 	listAPI   string
 	reportAPI string
+	location  string
 }
 
 func (s shadowServerConnector) connect() ([]byte, error) {
@@ -55,7 +56,7 @@ func (s shadowServerConnector) connect() ([]byte, error) {
 		return nil, err
 	}
 
-	return s.callAPI(jsonData, s.reportAPI)
+	return s.callAPI(jsonData, s.reportAPI+s.location)
 }
 
 func (s shadowServerConnector) preFetch() ([]byte, error) {
@@ -77,7 +78,7 @@ func (s shadowServerConnector) callAPI(data []byte, url string) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("HMAC2", string(integrity))
+	req.Header.Set("Hmac2", hex.EncodeToString(integrity))
 
 	client := &http.Client{}
 	response, err := client.Do(req)
@@ -85,12 +86,6 @@ func (s shadowServerConnector) callAPI(data []byte, url string) ([]byte, error) 
 		return nil, err
 	}
 	defer response.Body.Close()
-
-	if response.StatusCode == http.StatusOK {
-		fmt.Println("Request was successful")
-	} else {
-		fmt.Println("Request failed with status:", response.Status)
-	}
 
 	return io.ReadAll(response.Body)
 }
