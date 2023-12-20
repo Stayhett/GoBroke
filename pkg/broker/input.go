@@ -1,5 +1,6 @@
 package broker
 
+import "C"
 import (
 	"errors"
 	"io"
@@ -16,11 +17,15 @@ func InputHandler(inputConfig *Input, location string) ([]byte, error) {
 	var err error
 	switch inputConfig.Connector {
 	case "http":
-		connector, err = NewHTTPConnector(&ConfigHTTPConnector{
+		connector = NewHTTPConnector(&ConfigHTTPConnector{
 			location,
-		}), nil
+		})
 	case "shadowserver":
-		connector, err = NewShadowServerConnector(&ConfigShadowServerConnector{}), nil
+		connector = NewShadowServerConnector(&ConfigShadowServerConnector{
+			secretKey: []byte(inputConfig.IntegrityKey),
+			apikey:    inputConfig.Key,
+			location:  location,
+		})
 	default:
 		return nil, errors.New("unknown input connector")
 	}

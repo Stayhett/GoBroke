@@ -31,6 +31,7 @@ func generateAuth(message []byte, secret []byte) ([]byte, error) {
 type ConfigShadowServerConnector struct {
 	secretKey []byte
 	apikey    string
+	location  string
 }
 
 // Shadow server Input Connector
@@ -39,7 +40,6 @@ type shadowServerConnector struct {
 	auth      func(message []byte, secret []byte) ([]byte, error)
 	listAPI   string
 	reportAPI string
-	location  string
 }
 
 func (s shadowServerConnector) connect() ([]byte, error) {
@@ -55,8 +55,22 @@ func (s shadowServerConnector) connect() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	req, err := http.NewRequest("GET", s.reportAPI+s.config.location, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	err = s.prepareRequest(req, jsonData)
+	if err != nil {
+		return nil, err
+	}
 
-	return s.callAPI(jsonData, s.reportAPI+s.location)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	return io.ReadAll(response.Body)
 }
 
 func (s shadowServerConnector) preFetch() ([]byte, error) {
@@ -64,21 +78,14 @@ func (s shadowServerConnector) preFetch() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return s.callAPI(jsonData, s.listAPI)
-}
-
-func (s shadowServerConnector) callAPI(data []byte, url string) ([]byte, error) {
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", s.listAPI, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	integrity, err := s.auth(data, s.config.secretKey)
+	err = s.prepareRequest(req, jsonData)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Hmac2", hex.EncodeToString(integrity))
 
 	client := &http.Client{}
 	response, err := client.Do(req)
@@ -88,4 +95,14 @@ func (s shadowServerConnector) callAPI(data []byte, url string) ([]byte, error) 
 	defer response.Body.Close()
 
 	return io.ReadAll(response.Body)
+}
+
+func (s shadowServerConnector) prepareRequest(req *http.Request, data []byte) error {
+	req.Header.Set("Content-Type", "application/json")
+	integrity, err := s.auth(data, s.config.secretKey)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Hmac2", hex.EncodeToString(integrity))
+	return nil
 }
