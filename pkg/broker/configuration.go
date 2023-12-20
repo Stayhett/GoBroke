@@ -9,13 +9,14 @@ import (
 )
 
 type Input struct {
-	Prefetch  string   `yaml:"prefetch"`
-	Type      string   `yaml:"type"`
-	Locations []string `yaml:"locations"`
-	Connector string   `yaml:"connector"`
-	Key       string   `yaml:"key"`
-	Username  string   `yaml:"username"`
-	Password  string   `yaml:"password"`
+	Prefetch     string   `yaml:"prefetch"`
+	Type         string   `yaml:"type"`
+	Locations    []string `yaml:"locations"`
+	Connector    string   `yaml:"connector"`
+	Key          string   `yaml:"key"`
+	Username     string   `yaml:"username"`
+	Password     string   `yaml:"password"`
+	IntegrityKey string   `yaml:"integrityKey"`
 }
 
 type Output struct {
@@ -51,6 +52,7 @@ func ConfigurationConstructorFromFile(path string) (Configuration, error) {
 
 	// TODO: Validate Data Scheme
 	config.Output.GetEnvs()
+	config.Input.GetEnvs()
 	if config.Input.Prefetch != "" {
 		err = config.PreFetchHandler()
 		if err != nil {
@@ -70,7 +72,15 @@ func (C Configuration) PreFetchHandler() error {
 		data, err = FetchData(C.Input.Prefetch)
 		// TODO: how to get the input locations
 	case "shadowserver":
-		conn := shadowServerConnector{}
+		conn := shadowServerConnector{
+			config: ConfigShadowServerConnector{
+				secretKey: []byte(C.Input.IntegrityKey),
+				apikey:    C.Input.Key,
+			},
+			auth:      generateAuth,
+			listAPI:   "https://transform.shadowserver.org/api2/reports/list",
+			reportAPI: "https://dl.shadowserver.org/",
+		}
 		data, err = conn.preFetch()
 	default:
 		return errors.New("no prefetching for this connector available")

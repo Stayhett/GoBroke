@@ -92,7 +92,8 @@ func main() {
 	for _, config := range configurations {
 		for _, l := range config.Input.Locations {
 			wg.Add(1)
-			go processLocation(&wg, config, l)
+			configCopy := config
+			go processLocation(&wg, configCopy, l)
 		}
 	}
 	wg.Wait()

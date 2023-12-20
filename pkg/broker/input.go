@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 )
 
 type Connector interface {
@@ -56,4 +57,9 @@ func FetchData(url string) ([]byte, error) {
 		return nil, err
 	}
 	return body, nil
+}
+
+func (I *Input) GetEnvs() {
+	I.Key = os.Getenv(I.Key)
+	I.IntegrityKey = os.Getenv(I.IntegrityKey)
 }
