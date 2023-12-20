@@ -55,7 +55,7 @@ func (s shadowServerConnector) connect() ([]byte, error) {
 		return nil, err
 	}
 
-	return s.callAPI(jsonData)
+	return s.callAPI(jsonData, s.reportAPI)
 }
 
 func (s shadowServerConnector) preFetch() ([]byte, error) {
@@ -64,11 +64,11 @@ func (s shadowServerConnector) preFetch() ([]byte, error) {
 		return nil, err
 	}
 
-	return s.callAPI(jsonData)
+	return s.callAPI(jsonData, s.listAPI)
 }
 
-func (s shadowServerConnector) callAPI(data []byte) ([]byte, error) {
-	req, err := http.NewRequest("POST", s.listAPI, bytes.NewBuffer(data))
+func (s shadowServerConnector) callAPI(data []byte, url string) ([]byte, error) {
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
