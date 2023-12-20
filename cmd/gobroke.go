@@ -90,7 +90,6 @@ func main() {
 
 	var wg sync.WaitGroup
 	for _, config := range configurations {
-		config.Output.GetEnvs()
 		for _, l := range config.Input.Locations {
 			wg.Add(1)
 			go processLocation(&wg, config, l)

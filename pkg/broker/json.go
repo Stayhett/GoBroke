@@ -28,7 +28,7 @@ func readJSON(jsonData []byte) {
 	}
 
 	// Print the decoded data
-	PrintNestedJSON(data, "")
+	// PrintNestedJSON(data, "")
 
 	for key, value := range flattenJSON(data, "") {
 		fmt.Printf("Key: %s, Value: %d\n", key, value)
