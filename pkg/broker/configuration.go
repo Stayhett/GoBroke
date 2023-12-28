@@ -165,6 +165,13 @@ func (C *Configuration) PreFetchHandler() (Configurations, error) {
 				"value":  report["type"],
 			},
 		})
+		c.Processors = append(c.Processors, Processor{
+			name: "appendColumn",
+			config: map[string]interface{}{
+				"header": "report_id",
+				"value":  report["id"],
+			},
+		})
 		configs = append(configs, c)
 	}
 
