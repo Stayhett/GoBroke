@@ -1,6 +1,9 @@
 package broker
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type PipelineProcessor interface {
 	Do() Table
@@ -16,7 +19,11 @@ type Table [][]string
 
 func TableToMaps(data Table) ([]map[string]interface{}, error) {
 	var csvMaps []map[string]interface{}
-	for _, row := range data { // Skip the header row
+	if len(data) == 0 {
+		return nil, errors.New("empty data")
+	}
+
+	for _, row := range data[1:] {
 		csvMap := make(map[string]interface{})
 		for i, value := range row {
 			header := data[0][i]
@@ -30,11 +37,13 @@ func TableToMaps(data Table) ([]map[string]interface{}, error) {
 
 func (t *Table) Process(config *[]Processor) error {
 	for _, c := range *config {
-		switch c.name {
+		switch c.Name {
 		case "appendColumn":
-			AppendColumn(t, c.config)
+			appendColumn(t, c.Config)
+		case "timestamp":
+			timestamp(t)
 		default:
-			fmt.Printf("unknown processor - %s - continue", c.name)
+			fmt.Printf("unknown processor - %s - continue\n", c.Name)
 		}
 	}
 	return nil

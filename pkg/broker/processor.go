@@ -1,12 +1,14 @@
 package broker
 
+import "time"
+
 type Processor struct {
-	name   string
-	config map[string]interface{}
-	data   []byte
+	Name   string                 `yaml:"name"`
+	Config map[string]interface{} `yaml:"config"`
+	Data   []byte
 }
 
-func AppendColumn(table *Table, config map[string]interface{}) *Table {
+func appendColumn(table *Table, config map[string]interface{}) *Table {
 	header := config["header"].(string)
 	value := config["value"].(string)
 
@@ -18,4 +20,11 @@ func AppendColumn(table *Table, config map[string]interface{}) *Table {
 		}
 	}
 	return table
+}
+
+func timestamp(table *Table) *Table {
+	return appendColumn(table, map[string]interface{}{
+		"header": "@timestamp",
+		"value":  time.Now().Format("2006-01-02 15:04:05"),
+	})
 }

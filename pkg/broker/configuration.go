@@ -43,10 +43,6 @@ type Configuration struct {
 
 type Configurations []Configuration
 
-func (C *Configurations) name() {
-
-}
-
 func ReadConfigurations(path string) (Configurations, error) {
 	dir, err := os.Open(path)
 	if err != nil {
@@ -99,7 +95,7 @@ func ConfigurationConstructorFromFile(path string) (interface{}, error) {
 	// TODO: Validate Data Scheme
 	config.Output.GetEnvs()
 	config.Input.GetEnvs()
-	// TODO: Handle Prefetch
+
 	if config.Input.Prefetch != "" {
 		configs, err := config.PreFetchHandler()
 		if err != nil {
@@ -159,15 +155,15 @@ func (C *Configuration) PreFetchHandler() (Configurations, error) {
 		}
 		c.Input.Locations = []string{report["id"].(string)}
 		c.Processors = append(c.Processors, Processor{
-			name: "appendColumn",
-			config: map[string]interface{}{
+			Name: "appendColumn",
+			Config: map[string]interface{}{
 				"header": "type",
 				"value":  report["type"],
 			},
 		})
 		c.Processors = append(c.Processors, Processor{
-			name: "appendColumn",
-			config: map[string]interface{}{
+			Name: "appendColumn",
+			Config: map[string]interface{}{
 				"header": "report_id",
 				"value":  report["id"],
 			},
