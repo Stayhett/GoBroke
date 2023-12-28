@@ -1,6 +1,5 @@
 package broker
 
-import "C"
 import (
 	"errors"
 	"io"

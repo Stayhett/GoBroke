@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
-	"os"
-	"strings"
 	"sync"
 )
 
@@ -37,6 +35,7 @@ func processLocation(wg *sync.WaitGroup, config broker.Configuration, location s
 		return
 	}
 
+	// Table handling
 	pipeline := pipelineHandler(&config, data)
 	table := pipeline.Do()
 	if table == nil {
@@ -57,35 +56,9 @@ func main() {
 		log.Fatal("error loading .env file:", err)
 	}
 
-	path := "configuration/"
-
-	dir, err := os.Open(path)
+	configurations, err := broker.ReadConfigurations("configuration/")
 	if err != nil {
-		log.Fatal("error opening directory:", err)
-	}
-	defer func(dir *os.File) {
-		err := dir.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(dir)
-
-	// Read the contents of the directory
-	fileInfos, err := dir.Readdir(-1)
-	if err != nil {
-		log.Fatal("error reading directory:", err)
-	}
-
-	var configurations []broker.Configuration
-	for _, fileInfo := range fileInfos {
-		if strings.HasSuffix(fileInfo.Name(), ".yml") {
-			c, err := broker.ConfigurationConstructorFromFile(path + fileInfo.Name())
-			if err != nil {
-				log.Println("error constructing configuration:", err)
-				continue
-			}
-			configurations = append(configurations, c)
-		}
+		panic(err)
 	}
 
 	var wg sync.WaitGroup
