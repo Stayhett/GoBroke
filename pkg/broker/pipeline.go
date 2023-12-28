@@ -1,5 +1,7 @@
 package broker
 
+import "fmt"
+
 type PipelineProcessor interface {
 	Do() Table
 }
@@ -24,4 +26,16 @@ func TableToMaps(data Table) ([]map[string]interface{}, error) {
 	}
 
 	return csvMaps, nil
+}
+
+func (t *Table) Process(config *[]Processor) error {
+	for _, c := range *config {
+		switch c.name {
+		case "appendColumn":
+			AppendColumn(t, c.config)
+		default:
+			fmt.Printf("unknown processor - %s - continue", c.name)
+		}
+	}
+	return nil
 }

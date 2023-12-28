@@ -43,6 +43,12 @@ func processLocation(wg *sync.WaitGroup, config broker.Configuration, location s
 		return
 	}
 
+	err = table.Process(&config.Processors)
+	if err != nil {
+		log.Println("error during processing: ", err)
+		return
+	}
+
 	err = broker.LoadHandler(table, config.Output)
 	if err != nil {
 		log.Println("error loading data:", err)
