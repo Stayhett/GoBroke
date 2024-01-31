@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -19,6 +21,7 @@ type Input struct {
 	Username     string   `yaml:"username"`
 	Password     string   `yaml:"password"`
 	IntegrityKey string   `yaml:"integrityKey"`
+	Proxy        string   `yaml:"proxy"`
 }
 
 type Output struct {
@@ -28,6 +31,7 @@ type Output struct {
 	Key       string `yaml:"key"`
 	Username  string `yaml:"username"`
 	Password  string `yaml:"password"`
+	Pipeline  string `yaml:"pipeline"`
 }
 
 type PipelineConfiguration struct {
@@ -108,6 +112,19 @@ func ConfigurationConstructorFromFile(path string) (interface{}, error) {
 	return config, nil
 }
 
+func createNetworkConfig(proxy string) *http.Transport {
+	urlProxy, err := url.Parse(proxy)
+	if err != nil {
+		log.Printf("error %s", err)
+		return &http.Transport{}
+	}
+	if proxy == "" {
+		return &http.Transport{}
+	} else {
+		return &http.Transport{Proxy: http.ProxyURL(urlProxy)}
+	}
+}
+
 func (C *Configuration) PreFetchHandler() (Configurations, error) {
 	var data []byte
 	var err error
@@ -115,7 +132,7 @@ func (C *Configuration) PreFetchHandler() (Configurations, error) {
 	// Get data from right connector
 	switch C.Input.Connector {
 	case "http":
-		data, err = FetchData(C.Input.Prefetch)
+		data, err = FetchData(C.Input.Prefetch, createNetworkConfig(C.Input.Proxy))
 		// TODO: how to get the input locations
 	case "shadowserver":
 		conn := shadowServerConnector{
@@ -123,9 +140,10 @@ func (C *Configuration) PreFetchHandler() (Configurations, error) {
 				secretKey: []byte(C.Input.IntegrityKey),
 				apikey:    C.Input.Key,
 			},
-			auth:      generateAuth,
-			listAPI:   "https://transform.shadowserver.org/api2/reports/list",
-			reportAPI: "https://dl.shadowserver.org/",
+			auth:          generateAuth,
+			listAPI:       "https://transform.shadowserver.org/api2/reports/list",
+			reportAPI:     "https://dl.shadowserver.org/",
+			networkConfig: createNetworkConfig(C.Input.Proxy),
 		}
 		data, err = conn.preFetch()
 		if err != nil {

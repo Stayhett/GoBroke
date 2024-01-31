@@ -7,16 +7,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
 
-func NewShadowServerConnector(config *ConfigShadowServerConnector) Connector {
+func NewShadowServerConnector(config *ConfigShadowServerConnector, networkConfig *http.Transport) Connector {
 	return shadowServerConnector{
-		config:    *config,
-		auth:      generateAuth,
-		listAPI:   "https://transform.shadowserver.org/api2/reports/list",
-		reportAPI: "https://dl.shadowserver.org/",
+		config:        *config,
+		auth:          generateAuth,
+		listAPI:       "https://transform.shadowserver.org/api2/reports/list",
+		reportAPI:     "https://dl.shadowserver.org/",
+		networkConfig: networkConfig,
 	}
 }
 
@@ -36,10 +38,11 @@ type ConfigShadowServerConnector struct {
 
 // Shadow server Input Connector
 type shadowServerConnector struct {
-	config    ConfigShadowServerConnector
-	auth      func(message []byte, secret []byte) ([]byte, error)
-	listAPI   string
-	reportAPI string
+	config        ConfigShadowServerConnector
+	auth          func(message []byte, secret []byte) ([]byte, error)
+	listAPI       string
+	reportAPI     string
+	networkConfig *http.Transport
 }
 
 func (s shadowServerConnector) connect() ([]byte, error) {
@@ -64,7 +67,7 @@ func (s shadowServerConnector) connect() ([]byte, error) {
 		return nil, err
 	}
 
-	client := &http.Client{}
+	client := &http.Client{Transport: s.networkConfig}
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -86,13 +89,17 @@ func (s shadowServerConnector) preFetch() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	client := &http.Client{}
+	client := &http.Client{Transport: s.networkConfig}
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("error closing file: %s", err)
+		}
+	}(response.Body)
 
 	return io.ReadAll(response.Body)
 }

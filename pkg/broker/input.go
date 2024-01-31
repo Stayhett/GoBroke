@@ -16,15 +16,17 @@ func InputHandler(inputConfig *Input, location string) ([]byte, error) {
 	var err error
 	switch inputConfig.Connector {
 	case "http":
-		connector = NewHTTPConnector(&ConfigHTTPConnector{
-			location,
-		})
+		connector = NewHTTPConnector(
+			&ConfigHTTPConnector{location},
+			createNetworkConfig(inputConfig.Proxy))
 	case "shadowserver":
 		connector = NewShadowServerConnector(&ConfigShadowServerConnector{
 			secretKey: []byte(inputConfig.IntegrityKey),
 			apikey:    inputConfig.Key,
-			location:  location,
-		})
+			location:  location},
+			createNetworkConfig(inputConfig.Proxy))
+	case "file":
+		connector = NewFileConnector(location)
 	default:
 		return nil, errors.New("unknown input connector")
 	}
@@ -34,8 +36,20 @@ func InputHandler(inputConfig *Input, location string) ([]byte, error) {
 	return connector.connect()
 }
 
-func NewHTTPConnector(config *ConfigHTTPConnector) Connector {
-	return httpConnector{*config}
+func NewFileConnector(location string) Connector {
+	return FileConnector{location}
+}
+
+type FileConnector struct {
+	path string
+}
+
+func (c FileConnector) connect() ([]byte, error) {
+	return os.ReadFile(c.path)
+}
+
+func NewHTTPConnector(config *ConfigHTTPConnector, networkConfig *http.Transport) Connector {
+	return httpConnector{*config, networkConfig}
 }
 
 type ConfigHTTPConnector struct {
@@ -43,15 +57,21 @@ type ConfigHTTPConnector struct {
 }
 
 type httpConnector struct {
-	config ConfigHTTPConnector
+	config        ConfigHTTPConnector
+	networkConfig *http.Transport
 }
 
 func (h httpConnector) connect() ([]byte, error) {
-	return FetchData(h.config.url)
+	return FetchData(h.config.url, h.networkConfig)
 }
 
-func FetchData(url string) ([]byte, error) {
-	response, err := http.Get(url)
+func FetchData(urlString string, networkConfig *http.Transport) ([]byte, error) {
+	client := &http.Client{
+		Transport: networkConfig,
+	}
+	req, err := http.NewRequest("GET", urlString, nil)
+
+	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

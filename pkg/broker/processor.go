@@ -25,6 +25,6 @@ func appendColumn(table *Table, config map[string]interface{}) *Table {
 func timestamp(table *Table) *Table {
 	return appendColumn(table, map[string]interface{}{
 		"header": "@timestamp",
-		"value":  time.Now().UTC().Format(time.RFC3339),
+		"value":  time.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
 	})
 }
