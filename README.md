@@ -1,4 +1,5 @@
 # Go Broker
+![](docs/gopher.png)
 
 Go Broker is a lightweight and configurable data broker implemented in Go. It serves as a bridge between various data sources and destinations, allowing for easy data ingestion and transmission. This project is particularly useful for scenarios where data needs to be fetched from one or more sources, transformed, and then delivered to a specific destination.
 
