@@ -5,13 +5,14 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/esutil"
 	"log"
 	"net/http"
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esutil"
 )
 
 const (
@@ -19,6 +20,10 @@ const (
 )
 
 func uploadToElasticHandler(data []map[string]interface{}, output Output) {
+	uploadToElastic(output.Store, data, &output)
+}
+
+func newESConfig(output *Output) *elasticsearch.Config {
 	esConfig := &elasticsearch.Config{
 		Addresses: []string{os.Getenv(output.Host)},
 		Transport: &http.Transport{
@@ -32,19 +37,20 @@ func uploadToElasticHandler(data []map[string]interface{}, output Output) {
 		esConfig.Username = output.Username
 		esConfig.Password = output.Password
 	}
-
-	uploadToElastic(output.Store, data, esConfig)
+	return esConfig
 }
 
-func uploadToElastic(index string, data []map[string]interface{}, esConfig *elasticsearch.Config) {
+func uploadToElastic(index string, data []map[string]interface{}, output *Output) {
 	// Upload to elastic
+	esConfig := newESConfig(output)
+
 	es, err := elasticsearch.NewClient(*esConfig)
 	if err != nil {
 		log.Printf("error creating the client: %s", err)
 		return
 	}
 
-	bi, err := configureBulkIndexer(es, index)
+	bi, err := configureBulkIndexer(es, index, output.Pipeline)
 	if err != nil {
 		log.Printf("error creating the indexer: %s", err)
 		return
@@ -90,12 +96,16 @@ func uploadToElastic(index string, data []map[string]interface{}, esConfig *elas
 	}
 }
 
-func configureBulkIndexer(es *elasticsearch.Client, index string) (esutil.BulkIndexer, error) {
+func configureBulkIndexer(es *elasticsearch.Client, index string, pipeline string) (esutil.BulkIndexer, error) {
 	return esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Client:        es,
 		Index:         index,
 		NumWorkers:    runtime.NumCPU(),
-		FlushBytes:    defaultFlushBytes,
+		FlushBytes:    int(5e+6),
 		FlushInterval: 30 * time.Second,
+		Pipeline:      pipeline,
+		OnError: func(ctx context.Context, err error) {
+			log.Printf("bulk indexing error: %s", err)
+		},
 	})
 }
